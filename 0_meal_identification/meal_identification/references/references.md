@@ -16,7 +16,6 @@ References that capture high level references for all projects.
 - [Automated meal detection from continuous glucose monitor data through simulation and explanation](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6857509/)
 - [Time Series Segmentation with sktime and ClaSP](https://www.sktime.net/en/stable/examples/annotation/segmentation_with_clasp.html)
 
-
 ## Time Series
 
 ### Time Series Video Tutorials

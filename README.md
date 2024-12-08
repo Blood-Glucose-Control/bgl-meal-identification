@@ -27,7 +27,7 @@ In order to improve the speed and likelihood of transferring research to practic
 Some of the foreseeable benefits from this research:
 
 1. Improved feature engineer for downstream modeling tasks like blood glucose forecasting and causal modeling of blood glucose levels.
-2. Improved understanding of
+2. Improved understanding of prandial (meal-time) blood glucose dynamics.
 3. Reduced cognitive burden for PWDs because these methods can be incorporated into streamlining data logging.
 
 **_AI/ML Topics:_** _Feature Engineering, Time Series Annotation, Time Series Change Point Detection, Time Series Representation Learning, Semi-Supervised Learning, Benchmarking_

@@ -378,7 +378,7 @@ def train_model_instance(data_path: Path, model_path: Path, model="GMMHMM", supe
 
     try:
         save_model(model, model_path=model_path)
-        logger.info("Model saved to 0_meal_identification/meal_identification/models")
+        logger.info("Model saved to meal_identification/models")
     except Exception as e:
         logger.error(f"Error saving model: {e}")
 

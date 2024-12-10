@@ -12,7 +12,7 @@ class PipelineGenerator():
 
     """
     Class to generate sktime transformer pipeline:
-        Data is saved in 0_meal_identification/meal_identification/data/processed in the format:
+        Data is saved in meal_identification/data/processed in the format:
             run_# - number of run
             run_#/data - the output data from that run
             run_#/pipelines - pipelines saved from the run
@@ -29,8 +29,8 @@ class PipelineGenerator():
     """
 
     def __init__(self, 
-                 output_dir = "0_meal_identification/meal_identification/data/processed",
-                 input_dir = "0_meal_identification/meal_identification/data/interim"):
+                 output_dir = "meal_identification/data/processed",
+                 input_dir = "meal_identification/data/interim"):
         
         self.data_cat = {} 
         self.data_num = {} 

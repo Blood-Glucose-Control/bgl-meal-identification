@@ -58,8 +58,8 @@ def ensure_datetime_index(
 
 
 def dataset_creator(
-        raw_data_path='0_meal_identification/meal_identification/data/raw',
-        output_dir='0_meal_identification/meal_identification/data/interim',
+        raw_data_path='meal_identification/data/raw',
+        output_dir='meal_identification/data/interim',
         keep_cols=None,
         day_start_index_change=True,
         day_start_time=pd.Timedelta(hours=4),
@@ -195,8 +195,8 @@ def dataset_creator(
 
 # This function is meant for generating new dataset only
 def run_dataset_combinations(
-    raw_data_path='0_meal_identification/meal_identification/data/raw',
-    output_dir='0_meal_identification/meal_identification/data/interim',
+    raw_data_path='meal_identification/data/raw',
+    output_dir='meal_identification/data/interim',
     over_write=False
 ):
     """

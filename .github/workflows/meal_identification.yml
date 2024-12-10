@@ -20,7 +20,7 @@ jobs:
    runs-on: ${{ matrix.os }}
    defaults:
      run:
-       working-directory: ./0_meal_identification/meal_identification
+       working-directory: ./meal_identification
 
    steps:
      - uses: actions/checkout@v4
@@ -38,7 +38,7 @@ jobs:
      - uses: actions/cache@v3
        with:
          path: ${{ matrix.prefix }}
-         key: ${{ matrix.label }}-conda-${{ hashFiles('./0_meal_identification/meal_identification/environment-ci.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
+         key: ${{ matrix.label }}-conda-${{ hashFiles('./meal_identification/environment-ci.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
        id: cache
 
      - name: Update environment

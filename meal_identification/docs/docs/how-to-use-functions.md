@@ -12,7 +12,7 @@ The project is organized into several modules, each responsible for specific tas
 - **utils.py**: Utility functions for file handling and path management.
 - **plots.py**: Visualization functions for analyzing meal data.
 
-You can find these modules under `0_meal_identification/meal_identification/meal_identification/datasets`.
+You can find these modules under `meal_identification/meal_identification/datasets`.
 
 
 ## Usage
@@ -144,8 +144,8 @@ This module orchestrates the dataset creation process, integrating loading, clea
 
 **Parameters**:
 
-- `raw_data_path` (`str`, optional): Path to raw data files. Default: `'0_meal_identification/meal_identification/data/raw'`.
-- `output_dir` (`str`, optional): Directory to save processed data. Default: `'0_meal_identification/meal_identification/data/interim'`.
+- `raw_data_path` (`str`, optional): Path to raw data files. Default: `'meal_identification/data/raw'`.
+- `output_dir` (`str`, optional): Directory to save processed data. Default: `'meal_identification/data/interim'`.
 - `use_auto_label` (`bool`, optional): Whether to use automatic labeling. Default: `True`.
 - `keep_cols` (`list` of `str`, optional): Columns to retain from raw data. Default: `['date', 'bgl', 'msg_type', 'affects_fob', 'affects_iob', 'dose_units', 'food_g', 'food_glycemic_index']`.
 - `day_start_index_change` (`bool`, optional): Whether to adjust day start index based on a specific time. Default: `True`.
@@ -188,8 +188,8 @@ This module orchestrates the dataset creation process, integrating loading, clea
 
 **Parameters**:
 
-- `raw_data_path` (`str`, optional): Path to raw data files. Default: `'0_meal_identification/meal_identification/data/raw'`.
-- `output_dir` (`str`, optional): Directory to save processed data. Default: `'0_meal_identification/meal_identification/data/interim'`.
+- `raw_data_path` (`str`, optional): Path to raw data files. Default: `'meal_identification/data/raw'`.
+- `output_dir` (`str`, optional): Directory to save processed data. Default: `'meal_identification/data/interim'`.
 - `over_write` (`bool`, optional): Whether to overwrite existing processed datasets. Default: `False`.
 
 **Returns**:

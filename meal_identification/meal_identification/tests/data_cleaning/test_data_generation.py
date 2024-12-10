@@ -6,7 +6,7 @@ from datetime import timedelta
 from unittest.mock import ANY
 
 import sys
-sys.path.append('0_meal_identification/meal_identification')
+sys.path.append('meal_identification')
 from unittest.mock import MagicMock
 
 sys.modules['dataset_operations'] = MagicMock()

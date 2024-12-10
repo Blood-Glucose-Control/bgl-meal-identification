@@ -278,8 +278,8 @@ def logging_timing_obfuscator(
 
 def start():
     project_root = get_root_dir()
-    sim_dir = os.path.join(project_root, '0_meal_identification', 'meal_identification', 'data', 'raw', 'sim')
-    processed_dir = os.path.join(project_root, '0_meal_identification', 'meal_identification', 'data', 'raw',
+    sim_dir = os.path.join(project_root, 'meal_identification', 'data', 'raw', 'sim')
+    processed_dir = os.path.join(project_root, 'meal_identification', 'data', 'raw',
                                  'obfuscated')
 
     # TODO: Need to figure out why some files from data/raw/sim have a new line character at the end

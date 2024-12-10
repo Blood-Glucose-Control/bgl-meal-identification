@@ -88,7 +88,7 @@ def run_glucose_simulation(
 
     # Set up result directory
     project_root = get_root_dir()
-    result_dir = os.path.join(project_root, '0_meal_identification', 'meal_identification', 'data', 'sim')
+    result_dir = os.path.join(project_root, 'meal_identification', 'data', 'sim')
     os.makedirs(result_dir, exist_ok=True)
 
     # Run simulation
@@ -118,8 +118,8 @@ def process_sim_data(simulation_days, naming):
     """
     # Get the project root and construct sim directory path
     project_root = get_root_dir()
-    sim_dir = os.path.join(project_root, '0_meal_identification', 'meal_identification', 'data', 'sim')
-    processed_dir = os.path.join(project_root, '0_meal_identification', 'meal_identification', 'data', 'raw')
+    sim_dir = os.path.join(project_root, 'meal_identification', 'data', 'sim')
+    processed_dir = os.path.join(project_root, 'meal_identification', 'data', 'raw')
 
     # Convert to Path object for easier handling
     csv_files = [f for f in os.listdir(sim_dir) if f.endswith('.csv')]

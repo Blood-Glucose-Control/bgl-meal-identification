@@ -17,9 +17,8 @@ class TestGetRootDir(unittest.TestCase):
 
         # Create some nested dirs
         self.nested_dirs = [
-            os.path.join(self.temp_root, '0_meal_identification'),
-            os.path.join(self.temp_root, '0_meal_identification', 'meal_identification'),
-            os.path.join(self.temp_root, '0_meal_identification', 'meal_identification', 'datasets')
+            os.path.join(self.temp_root, 'meal_identification'),
+            os.path.join(self.temp_root, 'meal_identification', 'datasets')
         ]
 
         for dir_path in self.nested_dirs:

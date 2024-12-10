@@ -18,11 +18,11 @@ class TestTransformation(unittest.TestCase):
         os.makedirs(os.path.join(self.project_root, '.github'))
 
         # Create interim and processed data directory
-        self.interim_data_dir = "0_meal_identification/meal_identification/data/interim"
+        self.interim_data_dir = "meal_identification/data/interim"
         self.full_interim_path = os.path.join(self.project_root, self.interim_data_dir)
         os.makedirs(self.full_interim_path)
         
-        self.processed_data_dir = "0_meal_identification/meal_identification/data/processed"
+        self.processed_data_dir = "meal_identification/data/processed"
         self.full_processed_path = os.path.join(self.project_root, self.processed_data_dir)
         os.makedirs(self.full_processed_path)
 

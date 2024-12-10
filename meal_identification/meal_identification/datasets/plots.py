@@ -58,7 +58,7 @@ def plot_announce_meal_histogram(df, hours_or_15minutes='hours'):
     plt.show()
 
 def load_data(file='2024-11-15_500030__i5mins_d4hrs_c5g_l2hrs_n3.csv') -> pd.DataFrame:
-    data_path = '0_meal_identification/meal_identification/data/interim'
+    data_path = 'meal_identification/data/interim'
     project_root = get_root_dir()
     full_raw_loc_path = os.path.join(project_root, data_path)
     file_path = os.path.join(full_raw_loc_path, file)

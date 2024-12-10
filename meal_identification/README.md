@@ -15,8 +15,8 @@ Developing ai algorithms for automatic meal detection from blood glucose concent
 ├── data
 │   ├── external       <- Data from third party sources.
 │   ├── interim        <- Intermediate data that has been transformed.
-│   │    ├──config1    <- Each config is one data generation stragety
-│   │    └──config2
+│   │    ├──config1    <- Each config is one data generation stragety.
+│   │    └──config...
 │   ├── processed      <- The final, canonical data sets for modeling.
 │   └── raw            <- The original, immutable data dump.
 │

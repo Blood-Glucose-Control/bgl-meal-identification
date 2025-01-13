@@ -115,8 +115,7 @@ def dataset_creator(
         The processed DataFrames if `return_data` is True, else None.
     """
     if keep_cols is None:
-        keep_cols = ['date', 'bgl', 'msg_type', 'affects_fob', 'affects_iob',
-                     'dose_units', 'food_g', 'food_glycemic_index']
+        keep_cols = ['date', 'bgl', 'msg_type', 'dose_units', 'food_g']
 
     # Load data using DatasetTransformer
     patient_dfs_dict = load_data(raw_data_path=raw_data_path, keep_cols=keep_cols)

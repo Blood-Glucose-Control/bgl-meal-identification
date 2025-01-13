@@ -1,16 +1,20 @@
 import pandas as pd
 import os
 from simglucose.simulation.user_interface import simulate
-from simglucose.simulation.scenario import CustomScenario
 from simglucose.simulation.scenario_gen import RandomScenario
 from simglucose.controller.basal_bolus_ctrller import BBController
 from meal_identification.datasets.dataset_operations import get_root_dir
 from datetime import datetime, timedelta
+import random
 
 
 def process_simulated_data(df):
     """
     Process individual patient's glucose data into project-specific format.
+    CHO -> food_g
+    CGM -> bgl
+    BG -> bgl_real
+    Time -> date
 
     Parameters
     ----------
@@ -28,9 +32,6 @@ def process_simulated_data(df):
 
     # Add required columns
     processed_df['msg_type'] = ''
-    processed_df['food_glycemic_index'] = ''
-    processed_df['affects_iob'] = ''
-    processed_df['affects_fob'] = ''
     processed_df['dose_units'] = ''
 
     # Map CGM to bgl column, Time to date and BG to bgl_real for reference only
@@ -44,6 +45,11 @@ def process_simulated_data(df):
     # Drop the CHO column
     processed_df = processed_df.drop(columns=['CHO'])
 
+    # Truncate data to save some space
+    processed_df['bgl_real'] = processed_df['bgl_real'].round(2)
+    processed_df['bgl'] = processed_df['bgl'].round(2)
+    processed_df['food_g'] = processed_df['food_g'].round(2)
+    processed_df['date'] = pd.to_datetime(processed_df['date']).dt.strftime('%Y-%m-%d %H:%M')
 
     return processed_df
 
@@ -51,67 +57,79 @@ def process_simulated_data(df):
 def run_glucose_simulation(
         start_time=None,
         simulation_days=7,
-        scenario_type='random',
-        custom_meal_schedule=None,
         patient_names=None,
+        seeds=None,
         cgm_name="Dexcom",
         insulin_pump_name="Cozmo",
-        global_seed=123,
-        animate=False,
         parallel=True,
 ):
-    # Set default values
+    if seeds and len(patient_names) != len(seeds):
+        raise ValueError(
+            f"Length mismatch: patient_names has {len(patient_names)} elements while seeds has {len(seeds)} elements. Both lists must have the same length.")
     if start_time is None:
         start_time = pd.Timestamp('2024-01-01 00:00:00')
     if patient_names is None:
         patient_names = ['adult#001']
-    if custom_meal_schedule is None and scenario_type == 'custom':
-        custom_meal_schedule = [(1, 20)]  # Default meal at hour 1 with 20g carbs
-
-    # Create controller
-    controller = BBController()
-
-    # Set up simulation time
-    sim_time = pd.Timedelta(days=simulation_days)
-
-    # Scenario
-    if scenario_type == 'custom':
-        scenario = CustomScenario(
-            start_time=start_time,
-            scenario=custom_meal_schedule
-        )
-    else:
-        scenario = RandomScenario(
-            start_time=start_time,
-            seed=global_seed
-        )
 
     # Set up result directory
     project_root = get_root_dir()
     result_dir = os.path.join(project_root, 'meal_identification', 'data', 'sim')
     os.makedirs(result_dir, exist_ok=True)
 
-    # Run simulation
-    simulate(
-        sim_time=sim_time,
-        scenario=scenario,
-        controller=controller,
-        start_time=start_time,
-        save_path=result_dir,
-        cgm_name=cgm_name,
-        cgm_seed=global_seed,
-        insulin_pump_name=insulin_pump_name,
-        animate=animate,
-        parallel=parallel,
-        patient_names=patient_names,
-    )
+    # Create a controller
+    controller = BBController()
+
+    # Set up simulation time
+    sim_time = pd.Timedelta(days=simulation_days)
+
+    # Generate a random seed for each patient for a better outcome
+    # Tradeoff is that we can no longer parallelize the simulation process
+    # but this is not intended to be run very regularly
+    rand_seeds = []
+    for idx, patient in enumerate(patient_names):
+        if seeds is None:
+            seed = random.randint(1, 1000)
+            # Keep track of random seed for each patient
+            rand_seeds.append(seed)
+        else:
+            # Use provided seeds for reproducibility
+            seed = seeds[patient]
+
+        scenario = RandomScenario(
+            start_time=start_time,
+            seed=seed
+        )
+
+        # Run simulation
+        simulate(
+            sim_time=sim_time,
+            scenario=scenario,
+            controller=controller,
+            start_time=start_time,
+            save_path=result_dir,
+            cgm_name=cgm_name,
+            cgm_seed=seed,
+            insulin_pump_name=insulin_pump_name,
+            animate=False,
+            parallel=parallel,
+            patient_names=[patient],
+        )
+
+    if rand_seeds:
+        print("Random seeds: ", rand_seeds)
+
+    # Remove side products from the simulation
+    for file in os.listdir(result_dir):
+        if 'CVGA' in file or 'risk_trace' in file or 'performance' in file or file.endswith('.png'):
+            file_path = os.path.join(result_dir, file)
+            os.remove(file_path)
 
     return result_dir
 
 
 def process_sim_data(simulation_days, naming):
     """
-    Process all patient CSV files in the sim directory and output them to data/raw.
+    Process all patient CSV files in the sim/data to data/raw.
 
     Returns:
     dict: Dictionary with patient IDs as keys and processed DataFrames as values
@@ -125,9 +143,9 @@ def process_sim_data(simulation_days, naming):
     csv_files = [f for f in os.listdir(sim_dir) if f.endswith('.csv')]
 
     # Dictionary to store processed data for each patient
-    processed_data = {}
+    os.makedirs(processed_dir, exist_ok=True)
 
-    for file in csv_files:
+    for idx, file in enumerate(csv_files):
         # Skip CVGA_stats.csv and risk_trace.csv
         if ('CVGA' in file) or ('risk_trace' in file) or ('performance' in file):
             continue
@@ -142,63 +160,50 @@ def process_sim_data(simulation_days, naming):
             # Process the data
             processed_df = process_simulated_data(df)
 
+            # Add id for each patient
+            processed_df['id'] = idx
+
             # Create new filename (first 3 + last 3 characters before .csv)
             base_name = file.replace('.csv', '')
             short_name = f"{base_name[:3]}{base_name[-3:]}"
-            timestamp = datetime.today()
-            to = timestamp + timedelta(days=simulation_days)
-            start_date = timestamp.strftime('%Y-%m-%d')
+            now = datetime.today()
+            to = now + timedelta(days=simulation_days)
+            start_date = now.strftime('%Y-%m-%d')
             end_date = to.strftime('%Y-%m-%d')
             file = f"{short_name}_{naming['cgm_name']}_{naming['insulin_pump_name']}_{start_date}_{end_date}.csv"
 
-            # Store in dictionary
-            processed_data[file] = processed_df
-
-            print(f"Successfully processed {file}")
+            # Save the files
+            output_file = os.path.join(processed_dir, file)
+            processed_df.to_csv(output_file)
+            print(f"Successfully processed and saved {file}")
 
         except Exception as e:
             print(f"Error processing {file}: {str(e)}")
-
-    # Save processed data
-    os.makedirs(processed_dir, exist_ok=True)
-    for file, df in processed_data.items():
-        output_file = os.path.join(processed_dir, file)
-        df.to_csv(output_file)
-        print(f"Saved processed data for {file}")
-
-    return processed_data
 
 
 def generate_simulated_data(
         start_time=None,
         simulation_days=7,
-        scenario_type='random',
-        custom_meal_schedule=None,
         patient_names=None,
+        seeds=None,
         cgm_name="Dexcom",
         insulin_pump_name="Cozmo",
-        global_seed=123,
-        animate=False,
         parallel=True,
 ):
     """
     Run a glucose simulation with specified parameters and output to data/raw.
-    Animate and parallel can not be set to True at the same time for Mac. Not sure about Windows and Linux
-    General data flow: Sim -> Raw
+    General data flow:
+        1. Generate simulate data to `data/sim`
+        2. Process data in `data/sim` to `data/raw`
 
     Parameters
     ----------
     start_time (pd.Timestamp, optional): Start time for simulation. Defaults to '2024-01-01 00:00:00'.
     simulation_days (int, optional): Duration of simulation in days. Defaults to 7.
-    scenario_type (str, optional): Type of scenario
-         - 'random' | 'custom'. Defaults to 'random'.
-    custom_meal_schedule (list, optional): List of tuples (hour, carbs) for custom scenario.
     cgm_name (str, optional): Name of the cgm device.
          - "Dexcom" | "GuardianRT" | "Navigator". Defaults to "Dexcom".
     insulin_pump_name (str, optional): Name of the insulin pump device.
          - "Cozmo" | "Insulet". Defaults to "Cozmo".
-    global_seed (int, optional): Random seed for reproducibility. Defaults to 123.
-    animate (bool, optional): Whether to animate the simulation. Defaults to False.
     parallel (bool, optional): Whether to run simulations in parallel. Defaults to True.
     patient_names (list, optional): List of patient IDs to simulate.
          - patient_names can be from adult#001 ~ adult#010, adolescent#001 ~ adolescent#010 and child#001 ~ child#010. Default to ["adult#001"].
@@ -210,16 +215,15 @@ def generate_simulated_data(
     run_glucose_simulation(
         start_time=start_time,
         simulation_days=simulation_days,
-        scenario_type=scenario_type,
-        custom_meal_schedule=custom_meal_schedule,
         patient_names=patient_names,
+        seeds=seeds,
         cgm_name=cgm_name,
         insulin_pump_name=insulin_pump_name,
-        global_seed=global_seed,
-        animate=animate,
         parallel=parallel,
     )
-    process_sim_data(simulation_days=simulation_days, naming={'cgm_name': cgm_name, 'insulin_pump_name': insulin_pump_name})
+    process_sim_data(simulation_days=simulation_days,
+                     naming={'cgm_name': cgm_name, 'insulin_pump_name': insulin_pump_name})
+
 
 if __name__ == '__main__':
     # Example usage

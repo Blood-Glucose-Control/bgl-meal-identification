@@ -4,8 +4,13 @@ from simglucose.simulation.user_interface import simulate
 from simglucose.simulation.scenario_gen import RandomScenario
 from simglucose.controller.basal_bolus_ctrller import BBController
 from meal_identification.datasets.dataset_operations import get_root_dir
+from meal_identification.datasets.dataset_data_obfuscator import start as obfuscate
 from datetime import datetime, timedelta
 import random
+import matplotlib
+
+# Set the backend to Agg to avoid displaying plots. I think the plot is blocking the thread.
+matplotlib.use('Agg') 
 
 
 def process_simulated_data(df):
@@ -62,6 +67,7 @@ def run_glucose_simulation(
         cgm_name="Dexcom",
         insulin_pump_name="Cozmo",
         parallel=True,
+        data_dir=None
 ):
     if seeds and len(patient_names) != len(seeds):
         raise ValueError(
@@ -72,8 +78,7 @@ def run_glucose_simulation(
         patient_names = ['adult#001']
 
     # Set up result directory
-    project_root = get_root_dir()
-    result_dir = os.path.join(project_root, 'meal_identification', 'data', 'sim')
+    result_dir = os.path.join(data_dir, 'sim')
     os.makedirs(result_dir, exist_ok=True)
 
     # Create a controller
@@ -111,9 +116,11 @@ def run_glucose_simulation(
             cgm_seed=seed,
             insulin_pump_name=insulin_pump_name,
             animate=False,
-            parallel=parallel,
+            parallel=False,
             patient_names=[patient],
         )
+
+        print(f"Simulation for {patient} completed!")
 
     if rand_seeds:
         print("Random seeds: ", rand_seeds)
@@ -127,17 +134,22 @@ def run_glucose_simulation(
     return result_dir
 
 
-def process_sim_data(simulation_days, naming):
+def process_sim_data(
+        simulation_days,
+        naming,
+        data_dir=None,
+):
     """
-    Process all patient CSV files in the sim/data to data/raw.
+    Process all patient CSV files in the data_dir/sim to data_dir/inter
 
     Returns:
     dict: Dictionary with patient IDs as keys and processed DataFrames as values
     """
     # Get the project root and construct sim directory path
-    project_root = get_root_dir()
-    sim_dir = os.path.join(project_root, 'meal_identification', 'data', 'sim')
-    processed_dir = os.path.join(project_root, 'meal_identification', 'data', 'raw')
+    if data_dir is None:
+        raise ValueError("data_dir is required")
+    sim_dir = os.path.join(data_dir, 'sim')
+    processed_dir = os.path.join(data_dir, 'inter')
 
     # Convert to Path object for easier handling
     csv_files = [f for f in os.listdir(sim_dir) if f.endswith('.csv')]
@@ -189,6 +201,7 @@ def generate_simulated_data(
         cgm_name="Dexcom",
         insulin_pump_name="Cozmo",
         parallel=True,
+        data_dir=None
 ):
     """
     Run a glucose simulation with specified parameters and output to data/raw.
@@ -212,6 +225,9 @@ def generate_simulated_data(
     -------
     str: Path to the directory containing simulation results.
     """
+    if data_dir is None:
+        raise ValueError("data_dir is required")
+    
     run_glucose_simulation(
         start_time=start_time,
         simulation_days=simulation_days,
@@ -220,14 +236,31 @@ def generate_simulated_data(
         cgm_name=cgm_name,
         insulin_pump_name=insulin_pump_name,
         parallel=parallel,
+        data_dir=data_dir
     )
-    process_sim_data(simulation_days=simulation_days,
-                     naming={'cgm_name': cgm_name, 'insulin_pump_name': insulin_pump_name})
+    process_sim_data(
+        simulation_days=simulation_days,
+        naming={'cgm_name': cgm_name, 'insulin_pump_name': insulin_pump_name},
+        data_dir=data_dir
+    )
 
 
 if __name__ == '__main__':
     # Example usage
     default_patient_names = ['adult#001', 'adult#003']
+    project_root = get_root_dir()
+    start_time = datetime.now().isoformat()
+    data_dir = os.path.join(project_root, 'meal_identification', 'data', 'simglucose', start_time)
+
+    # Run the simulation and save the data to data_dir/sim and process it to data_dir/inter
     generate_simulated_data(
-        patient_names=default_patient_names
+        patient_names=default_patient_names,
+        data_dir=data_dir
     )
+
+    # Obfuscate the data in data_dir/inter and save it to data_dir/obfuscated
+    obfuscate(
+        from_dir=os.path.join(data_dir, 'inter'),
+        to_dir=os.path.join(data_dir, 'obfuscated')
+    )
+

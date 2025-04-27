@@ -277,11 +277,41 @@ def logging_timing_obfuscator(
         return patient_df, "punctual"
 
 
-def start():
-    project_root = get_root_dir()
-    sim_dir = os.path.join(project_root, 'meal_identification', 'data', 'raw', 'sim')
-    processed_dir = os.path.join(project_root, 'meal_identification', 'data', 'raw',
-                                 'obfuscated')
+def start(
+    from_dir: str = None,
+    to_dir: str = None
+):
+    """
+    Batch obfuscates meal logging data for all patient simulation CSVs.
+
+    This function processes all CSV files in the data/raw/sim directory, applying randomized obfuscation
+    to meal logging behavior and timing for each patient. The obfuscation simulates different types of
+    meal logging patterns (e.g., logging all meals, only largest meals, logging late/early, etc.) by
+    randomly assigning each patient to a logger type and timing type based on uniform distributions.
+
+    For each patient file:
+        - Reads the CSV and sets the date as the index.
+        - Applies logging behavior obfuscation (how often meals are logged).
+        - Applies logging timing obfuscation (when meals are logged relative to actual time).
+        - Saves the obfuscated DataFrame to a new CSV in the processed directory, with the filename
+          indicating the logger type and timing type.
+
+    Prints progress and summary statistics.
+
+    Raises:
+        Prints error messages for any files that fail to process.
+
+    Returns:
+        None
+    """
+    if from_dir is None:
+        raise ValueError("from_dir is required")
+    if to_dir is None:
+        raise ValueError("to_dir is required")
+    
+    sim_dir = from_dir
+    processed_dir = to_dir
+    os.makedirs(processed_dir, exist_ok=True)
 
     # TODO: Need to figure out why some files from data/raw/sim have a new line character at the end
     csv_files = [f for f in os.listdir(sim_dir) if f.endswith('.csv')]
@@ -331,7 +361,3 @@ def start():
             print(f"Error processing {file}: {str(e)}")
 
     print(f"Total file processed: {processed_count}")
-
-
-if __name__ == '__main__':
-    start()
